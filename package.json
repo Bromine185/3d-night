@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "fixtures": "tsx scripts/generate-fixtures.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -29,6 +30,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.23",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^5"
   }
 }
