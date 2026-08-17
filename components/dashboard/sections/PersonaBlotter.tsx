@@ -3,21 +3,8 @@
 import { useState } from "react";
 import { Spark } from "@/components/dashboard/Spark";
 import { runPersonas } from "@/lib/agents";
-import type { PersonaFamily } from "@/lib/agents/types";
+import { FAMILY_SHORT } from "@/lib/agents/personas";
 import { fmtClock } from "@/lib/format";
-
-const FAMILY_SHORT: Record<PersonaFamily, string> = {
-  filings: "filings",
-  transcripts: "transcripts",
-  options_flow: "options",
-  on_chain: "on-chain",
-  macro: "macro",
-  sector_news: "sector",
-  technicals: "tape",
-  credit: "credit",
-  positioning: "positioning",
-  alt_data: "alt-data",
-};
 
 const GLYPH: Record<number, { g: string; cls: string }> = {
   1: { g: "▲", cls: "text-foreground" },

@@ -85,6 +85,9 @@ export function AccordionProvider({ children }: { children: React.ReactNode }) {
   const navTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // After a manual close, don't auto-reopen until the user really scrolls.
   const manualClose = useRef<number | null>(null);
+  // Cooldown: a physical scroll can't legitimately flip sections twice in
+  // 150ms — anything faster is a feedback loop, and gets dropped.
+  const lastActivate = useRef(0);
   const reducedMotion = useRef(false);
 
   useEffect(() => {
@@ -108,6 +111,9 @@ export function AccordionProvider({ children }: { children: React.ReactNode }) {
   const activate = useCallback((id: SectionId) => {
     const prev = activeRef.current;
     if (prev === id) return;
+    const now = performance.now();
+    if (now - lastActivate.current < 150) return;
+    lastActivate.current = now;
     const goingDown = prev === null || SECTION_ORDER.indexOf(id) > SECTION_ORDER.indexOf(prev);
     // Anchor the eye-line: the incoming header when descending; the first
     // header still below the activation line when ascending.
@@ -153,6 +159,30 @@ export function AccordionProvider({ children }: { children: React.ReactNode }) {
     };
   }, [activate]);
 
+  // The activation line can't reach headers pinned near the bottom: with
+  // everything below collapsed, the page is too short to lift them. So a
+  // wheel-down at the document's end means "keep reading" — advance to the
+  // next section. Its expansion regrows the page and normal scrolling
+  // resumes. (At max scroll no scroll event fires, hence a wheel listener.)
+  useEffect(() => {
+    let lastAdvance = 0;
+    const onWheel = (e: WheelEvent) => {
+      if (navLock.current || e.deltaY <= 4) return;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      if (window.scrollY < max - 4) return;
+      const now = performance.now();
+      if (now - lastAdvance < 700) return;
+      const idx = activeRef.current ? SECTION_ORDER.indexOf(activeRef.current) : -1;
+      const next = SECTION_ORDER[idx + 1];
+      if (!next) return;
+      lastAdvance = now;
+      manualClose.current = null;
+      activate(next);
+    };
+    window.addEventListener("wheel", onWheel, { passive: true });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [activate]);
+
   // Deep link: ?s=lab opens and lands there on load.
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get("s") as SectionId | null;
@@ -162,7 +192,6 @@ export function AccordionProvider({ children }: { children: React.ReactNode }) {
         document.getElementById(id)?.scrollIntoView({ behavior: "instant", block: "start" });
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const lockUntilScrollEnd = useCallback(() => {

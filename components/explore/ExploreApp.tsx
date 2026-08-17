@@ -15,12 +15,18 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Surface } from "@/lib/agents/types";
 import { LATEST_INDEX } from "@/lib/fixtures";
+import { CONTOUR_STEP } from "@/lib/explore/projection";
 import { isCached, quantizeIndex, stormSurfaceAt, surfaceAt } from "@/lib/explore/surfaces";
+import { Axes } from "./scene/Axes";
 import { CriticGhost } from "./scene/CriticGhost";
+import { PersonaAxes } from "./scene/PersonaAxes";
 import { PersonaNodes } from "./scene/PersonaNodes";
 import { Storm } from "./scene/Storm";
 import { Terrain } from "./scene/Terrain";
+import { Intro } from "./ui/Intro";
 import { TimeScrubber } from "./ui/TimeScrubber";
+
+const INTRO_KEY = "3dnight.intro.v1";
 
 export default function ExploreApp() {
   const [timeIndex, setTimeIndex] = useState(LATEST_INDEX);
@@ -28,7 +34,9 @@ export default function ExploreApp() {
   const [activeSurface, setActiveSurface] = useState<Surface | null>(null);
   const [stormSurf, setStormSurf] = useState<Surface | null>(null);
   const [computing, setComputing] = useState(false);
+  const [introStep, setIntroStep] = useState<number | null>(null);
   const generation = useRef(0);
+  const introChecked = useRef(false);
 
   const qi = quantizeIndex(timeIndex);
 
@@ -71,6 +79,23 @@ export default function ExploreApp() {
     return () => clearTimeout(id);
   }, []);
 
+  // First visit: open the walkthrough once the loader clears. `?intro=1`
+  // forces it; the ? button replays it any time.
+  useEffect(() => {
+    if (!activeSurface || introChecked.current) return;
+    introChecked.current = true;
+    const forced = new URLSearchParams(window.location.search).get("intro") === "1";
+    if (forced || !window.localStorage.getItem(INTRO_KEY)) setIntroStep(0);
+  }, [activeSurface]);
+
+  const closeIntro = () => {
+    window.localStorage.setItem(INTRO_KEY, "seen");
+    setIntroStep(null);
+  };
+
+  // The surface the instruments should measure: mid-storm, the stressed one.
+  const effSurface = stormActive && stormSurf ? stormSurf : activeSurface;
+
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-[#0a0a0c]">
       <Canvas dpr={[1, 2]} camera={{ fov: 42, position: [14, 11, 16] }}>
@@ -89,6 +114,8 @@ export default function ExploreApp() {
             ghostSurface={stormActive ? activeSurface : null}
           />
         )}
+        {effSurface && <Axes surface={effSurface} />}
+        <PersonaAxes emphasize={introStep === 2} />
         <PersonaNodes timeIndex={timeIndex} showTrails />
         <Storm active={stormActive} />
         <CriticGhost surface={activeSurface} />
@@ -98,7 +125,7 @@ export default function ExploreApp() {
           dampingFactor={0.08}
           enablePan={false}
           minDistance={8}
-          maxDistance={40}
+          maxDistance={32}
           maxPolarAngle={1.35}
           target={[0, 0.6, 0]}
         />
@@ -117,20 +144,41 @@ export default function ExploreApp() {
             ← DASHBOARD
           </Link>
         </div>
-        <button
-          onClick={() => setStormActive((s) => !s)}
-          className="pointer-events-auto border border-[#232329] px-3 py-1.5 font-mono text-[10px] tracking-[0.2em] text-[#9a9aa3] transition-colors hover:border-[#55555e] hover:text-[#e6e6ea]"
-          style={stormActive ? { color: "#ffb224", borderColor: "#ffb224" } : undefined}
-        >
-          {stormActive ? "CLEAR SKIES" : "SUMMON BREAKER"}
-        </button>
+        <div className="pointer-events-auto flex items-center gap-2">
+          <button
+            onClick={() => setStormActive((s) => !s)}
+            className={`border px-3 py-1.5 font-mono text-[10px] tracking-[0.2em] transition-colors hover:text-[#e6e6ea] ${
+              introStep === 3
+                ? "animate-pulse border-[#ffb224] text-[#ffb224]"
+                : "border-[#232329] text-[#9a9aa3] hover:border-[#55555e]"
+            }`}
+            style={stormActive ? { color: "#ffb224", borderColor: "#ffb224" } : undefined}
+          >
+            {stormActive ? "CLEAR SKIES" : "SUMMON BREAKER"}
+          </button>
+          <button
+            onClick={() => setIntroStep(0)}
+            aria-label="replay the intro"
+            className="border border-[#232329] px-2.5 py-1.5 font-mono text-[10px] text-[#9a9aa3] transition-colors hover:border-[#55555e] hover:text-[#e6e6ea]"
+          >
+            ?
+          </button>
+        </div>
       </div>
 
-      <div className="pointer-events-none absolute bottom-20 left-5 z-30 font-mono text-[10px] leading-relaxed text-[#55555e]">
-        height = realized return · x = entry threshold · z = holding period
-        <br />
-        nodes = the fifty, placed by view · drag to orbit, scroll to zoom
-      </div>
+      {introStep === null && (
+        <div className="pointer-events-none absolute bottom-20 left-5 z-30 font-mono text-[10px] leading-relaxed">
+          <div className="text-[#9a9aa3]">
+            height = 5y return · waterline = break even · contour ={" "}
+            {(CONTOUR_STEP * 100).toFixed(1)}%
+          </div>
+          <div className="text-[#9a9aa3]">amber tint = profit · flag = shipped strategy</div>
+          <div className="text-[#55555e]">
+            overhead: the fifty · x = view · z = slice read · y = conviction
+          </div>
+          <div className="text-[#55555e]">drag to orbit · scroll to zoom · hover a node</div>
+        </div>
+      )}
 
       {!activeSurface && (
         <div className="absolute inset-0 z-20 flex items-center justify-center">
@@ -138,7 +186,16 @@ export default function ExploreApp() {
         </div>
       )}
 
-      <TimeScrubber value={timeIndex} onChange={setTimeIndex} computing={computing} />
+      {introStep !== null && (
+        <Intro step={introStep} onStep={setIntroStep} onClose={closeIntro} />
+      )}
+
+      <TimeScrubber
+        value={timeIndex}
+        onChange={setTimeIndex}
+        computing={computing}
+        highlight={introStep === 4}
+      />
     </div>
   );
 }

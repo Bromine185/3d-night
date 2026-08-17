@@ -49,6 +49,35 @@ interface FamilySpec {
   names: string[];
 }
 
+/** Display names for the ten slices — shared by the blotter and the 3D
+ *  persona layer so both surfaces speak the same words. Index order here
+ *  is family order everywhere (personaToWorld's z bands included). */
+export const FAMILY_SHORT: Record<PersonaFamily, string> = {
+  filings: "filings",
+  transcripts: "transcripts",
+  options_flow: "options",
+  on_chain: "on-chain",
+  macro: "macro",
+  sector_news: "sector",
+  technicals: "tape",
+  credit: "credit",
+  positioning: "positioning",
+  alt_data: "alt-data",
+};
+
+export const FAMILY_ORDER: PersonaFamily[] = [
+  "filings",
+  "transcripts",
+  "options_flow",
+  "on_chain",
+  "macro",
+  "sector_news",
+  "technicals",
+  "credit",
+  "positioning",
+  "alt_data",
+];
+
 const FAMILIES: FamilySpec[] = [
   {
     family: "filings",

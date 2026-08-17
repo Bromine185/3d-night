@@ -15,9 +15,16 @@ export interface TimeScrubberProps {
   onChange: (idx: number) => void;
   /** True while a surface for this moment is still being replayed. */
   computing?: boolean;
+  /** The intro's "five years" step rings the control it's describing. */
+  highlight?: boolean;
 }
 
-export function TimeScrubber({ value, onChange, computing = false }: TimeScrubberProps) {
+export function TimeScrubber({
+  value,
+  onChange,
+  computing = false,
+  highlight = false,
+}: TimeScrubberProps) {
   const [playing, setPlaying] = useState(false);
   const playRef = useRef(playing);
   playRef.current = playing;
@@ -44,7 +51,11 @@ export function TimeScrubber({ value, onChange, computing = false }: TimeScrubbe
   const atEnd = value >= LATEST_INDEX;
 
   return (
-    <div className="pointer-events-auto absolute inset-x-0 bottom-0 z-30 border-t border-[#232329] bg-[#0a0a0c]/85 backdrop-blur-sm">
+    <div
+      className={`pointer-events-auto absolute inset-x-0 bottom-0 z-30 border-t bg-[#0a0a0c]/85 backdrop-blur-sm transition-colors duration-500 ${
+        highlight ? "border-[#ffb224]" : "border-[#232329]"
+      }`}
+    >
       <div className="mx-auto flex max-w-4xl items-center gap-5 px-6 py-4">
         <button
           onClick={() => {

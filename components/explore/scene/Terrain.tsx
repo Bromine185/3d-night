@@ -15,12 +15,15 @@ import * as THREE from "three";
 import { STRATEGY } from "@/lib/agents/coder";
 import type { Surface } from "@/lib/agents/types";
 import {
+  CONTOUR_STEP,
   HEIGHT_SCALE,
+  PROFIT_RAMP,
   SPAN,
   STORM_SWEEP_SECONDS,
   paramToWorld,
   sampleSurface,
 } from "@/lib/explore/projection";
+import { fmtPct, fmtPctAbs } from "@/lib/format";
 
 const RES = 85; // vertices per side of the render mesh
 const GHOST_RES = 21; // the ghost shows the raw grid — sparser, clearly a memory
@@ -80,8 +83,10 @@ function smoothstep(edge0: number, edge1: number, x: number): number {
   return t * t * (3 - 2 * t);
 }
 
-/** Contour shader patch: iso-lines every 1.5% of return, zero line brighter,
- *  a barely-warm accent tint on profitable ground. */
+/** Contour shader patch: iso-lines every CONTOUR_STEP of return, zero line
+ *  brighter, a barely-warm accent tint saturating at PROFIT_RAMP. The
+ *  constants live in projection.ts so the legend can state them without
+ *  drifting out of sync. */
 function makeTerrainMaterial(): THREE.MeshStandardMaterial {
   const mat = new THREE.MeshStandardMaterial({
     color: new THREE.Color("#101014"),
@@ -102,10 +107,10 @@ function makeTerrainMaterial(): THREE.MeshStandardMaterial {
         `#include <color_fragment>
 {
   float w = fwidth(vVal) + 1e-6;
-  float g = abs(fract(vVal / 0.015 + 0.5) - 0.5) * 0.015 / w;
+  float g = abs(fract(vVal / ${CONTOUR_STEP.toFixed(3)} + 0.5) - 0.5) * ${CONTOUR_STEP.toFixed(3)} / w;
   float contour = 1.0 - smoothstep(0.0, 1.1, g);
   float zero = 1.0 - smoothstep(0.0, 1.6, abs(vVal) / w);
-  float profit = clamp(vVal / 0.12, 0.0, 1.0);
+  float profit = clamp(vVal / ${PROFIT_RAMP.toFixed(2)}, 0.0, 1.0);
   vec3 shade = mix(diffuseColor.rgb, vec3(1.0, 0.698, 0.141), profit * 0.13);
   shade = mix(shade, vec3(0.333, 0.333, 0.369), contour * 0.5);
   shade = mix(shade, vec3(0.604, 0.604, 0.639), zero * 0.55);
@@ -119,6 +124,7 @@ function makeTerrainMaterial(): THREE.MeshStandardMaterial {
 export function Terrain({ surface, stormSurface, stormActive = false, ghostSurface }: TerrainProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const markerRef = useRef<THREE.Group>(null);
+  const droplineRef = useRef<THREE.Mesh>(null);
   const ghostMatRef = useRef<THREE.MeshBasicMaterial>(null);
 
   const geometry = useMemo(() => buildGridGeometry(RES), []);
@@ -148,6 +154,15 @@ export function Terrain({ surface, stormSurface, stormActive = false, ghostSurfa
   );
   const markerI = Math.round(((markerX + SPAN) / (2 * SPAN)) * (RES - 1));
   const markerJ = Math.round(((markerZ + SPAN) / (2 * SPAN)) * (RES - 1));
+
+  // What the flag's setting actually returned on the surface being shown —
+  // the callout reads a measurement, not just a location.
+  const markerVal = useMemo(() => {
+    const src = stormActive && stormSurface ? stormSurface : surface;
+    const u = (markerX + SPAN) / (2 * SPAN);
+    const v = (markerZ + SPAN) / (2 * SPAN);
+    return sampleSurface(src, u, v);
+  }, [surface, stormSurface, stormActive, markerX, markerZ]);
 
   useFrame((_, rawDt) => {
     // Generous clamp: on a slow machine (software GL, old laptop) frames can
@@ -192,9 +207,15 @@ export function Terrain({ surface, stormSurface, stormActive = false, ghostSurfa
       if (maxDelta < 5e-4 && front.current === frontTarget) settled.current = true;
     }
 
-    // The strategy's own flag rides the deforming surface.
+    // The strategy's own flag rides the deforming surface; its dropline
+    // spans terrain height → waterline, making the flag a measurement.
     if (markerRef.current) {
-      markerRef.current.position.y = current.current[markerJ * RES + markerI];
+      const h = current.current[markerJ * RES + markerI];
+      markerRef.current.position.y = h;
+      if (droplineRef.current) {
+        droplineRef.current.scale.y = Math.abs(h) < 1e-4 ? 1e-4 : h;
+        droplineRef.current.position.y = h / 2;
+      }
     }
 
     // Ghost fades in as a memory, out as the sky clears.
@@ -262,6 +283,12 @@ export function Terrain({ surface, stormSurface, stormActive = false, ghostSurfa
         </mesh>
       )}
 
+      {/* the strategy's dropline: terrain height → break-even plane */}
+      <mesh ref={droplineRef} position={[markerX, 0, markerZ]}>
+        <cylinderGeometry args={[0.01, 0.01, 1, 4]} />
+        <meshBasicMaterial color="#ffb224" transparent opacity={0.35} depthWrite={false} />
+      </mesh>
+
       {/* the strategy's own coordinates */}
       <group ref={markerRef} position={[markerX, 0, markerZ]}>
         <mesh position={[0, 0.75, 0]}>
@@ -276,34 +303,21 @@ export function Terrain({ surface, stormSurface, stormActive = false, ghostSurfa
           <div
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 10,
+              fontSize: 11,
               whiteSpace: "nowrap",
-              color: "#9a9aa3",
+              color: "#e6e6ea",
+              background: "rgba(10,10,12,0.72)",
+              padding: "2px 6px",
               pointerEvents: "none",
             }}
           >
-            you are here · 5% × 5d
+            you are here · {fmtPctAbs(STRATEGY.entry.minGap, 0)} × {STRATEGY.exit.holdingDays}d ·{" "}
+            <span style={{ color: "#ffb224" }}>{fmtPct(markerVal)}</span>
           </div>
         </Html>
       </group>
 
-      {/* axis labels */}
-      <Html position={[0, 0.1, SPAN + 1.6]} center distanceFactor={20} zIndexRange={[30, 0]}>
-        <div style={axisLabelStyle}>entry threshold 1% → 15%</div>
-      </Html>
-      <Html position={[SPAN + 1.9, 0.1, 0]} center distanceFactor={20} zIndexRange={[30, 0]}>
-        <div style={axisLabelStyle}>holding period 1 → 21d</div>
-      </Html>
+      {/* axis furniture (rulers, return post, annotations) lives in Axes.tsx */}
     </group>
   );
 }
-
-const axisLabelStyle: React.CSSProperties = {
-  fontFamily: "var(--font-mono)",
-  fontSize: 10,
-  letterSpacing: "0.12em",
-  whiteSpace: "nowrap",
-  color: "#55555e",
-  pointerEvents: "none",
-  userSelect: "none",
-};
