@@ -1,45 +1,68 @@
 "use client";
 
 /**
- * The exploration mode. One scene: the strategy's parameter space as terrain.
- * The agents arrive in later commits — nodes, storm, ghost, scrubber — each
- * mounting as one self-contained element.
+ * The exploration mode. One scene: the strategy's parameter space as terrain,
+ * the fifty personas as weather above it, the breaker as a storm you summon,
+ * the critic as a ghost that whispers when you linger where the journal says
+ * you've been before, and a scrubber that moves all of it through time.
+ *
+ * Every feature mounts as one self-contained element; each can be removed
+ * without touching the others.
  */
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Surface } from "@/lib/agents/types";
 import { LATEST_INDEX } from "@/lib/fixtures";
-import { baseSurface, isCached, stormSurfaceAt } from "@/lib/explore/surfaces";
+import { isCached, quantizeIndex, stormSurfaceAt, surfaceAt } from "@/lib/explore/surfaces";
 import { CriticGhost } from "./scene/CriticGhost";
 import { PersonaNodes } from "./scene/PersonaNodes";
 import { Storm } from "./scene/Storm";
 import { Terrain } from "./scene/Terrain";
+import { TimeScrubber } from "./ui/TimeScrubber";
 
 export default function ExploreApp() {
-  const [activeSurface, setActiveSurface] = useState<Surface | null>(null);
+  const [timeIndex, setTimeIndex] = useState(LATEST_INDEX);
   const [stormActive, setStormActive] = useState(false);
+  const [activeSurface, setActiveSurface] = useState<Surface | null>(null);
   const [stormSurf, setStormSurf] = useState<Surface | null>(null);
+  const [computing, setComputing] = useState(false);
+  const generation = useRef(0);
 
-  // The full five-year replay across the whole grid — computed once, off the
-  // first paint so the loading line shows instead of a frozen tab.
-  useEffect(() => {
-    const id = setTimeout(() => setActiveSurface(baseSurface()), 30);
-    return () => clearTimeout(id);
-  }, []);
+  const qi = quantizeIndex(timeIndex);
 
-  // Storm surface: computed when summoned, prefetched shortly after load so
-  // the first summon lands instantly.
+  // Base surface for the current moment. Cached hits land synchronously;
+  // misses yield a frame first so the scrubber never stalls.
   useEffect(() => {
-    if (!stormActive) return;
-    if (isCached("storm", LATEST_INDEX)) {
-      setStormSurf(stormSurfaceAt(LATEST_INDEX));
+    const gen = ++generation.current;
+    if (isCached("base", qi)) {
+      setActiveSurface(surfaceAt(qi));
+      setComputing(false);
       return;
     }
-    const id = setTimeout(() => setStormSurf(stormSurfaceAt(LATEST_INDEX)), 40);
+    setComputing(true);
+    const id = setTimeout(() => {
+      const s = surfaceAt(qi);
+      if (generation.current === gen) {
+        setActiveSurface(s);
+        setComputing(false);
+      }
+    }, 30);
     return () => clearTimeout(id);
-  }, [stormActive]);
+  }, [qi]);
+
+  // Storm surface: computed when summoned (and kept current while active);
+  // prefetched once shortly after load so the first summon lands instantly.
+  useEffect(() => {
+    if (!stormActive) return;
+    if (isCached("storm", qi)) {
+      setStormSurf(stormSurfaceAt(qi));
+      return;
+    }
+    const id = setTimeout(() => setStormSurf(stormSurfaceAt(qi)), 40);
+    return () => clearTimeout(id);
+  }, [stormActive, qi]);
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -64,7 +87,7 @@ export default function ExploreApp() {
             ghostSurface={stormActive ? activeSurface : null}
           />
         )}
-        <PersonaNodes showTrails />
+        <PersonaNodes timeIndex={timeIndex} showTrails />
         <Storm active={stormActive} />
         <CriticGhost surface={activeSurface} />
 
@@ -101,7 +124,7 @@ export default function ExploreApp() {
         </button>
       </div>
 
-      <div className="pointer-events-none absolute bottom-6 left-5 z-30 font-mono text-[10px] leading-relaxed text-[#55555e]">
+      <div className="pointer-events-none absolute bottom-20 left-5 z-30 font-mono text-[10px] leading-relaxed text-[#55555e]">
         height = realized return · x = entry threshold · z = holding period
         <br />
         nodes = the fifty, placed by view · drag to orbit, scroll to zoom
@@ -112,6 +135,8 @@ export default function ExploreApp() {
           <span className="label-caps animate-pulse">replaying five years…</span>
         </div>
       )}
+
+      <TimeScrubber value={timeIndex} onChange={setTimeIndex} computing={computing} />
     </div>
   );
 }
