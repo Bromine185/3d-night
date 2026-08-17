@@ -39,6 +39,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-night-accent: var(--night-accent);
+  --color-night-faint: var(--night-faint);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -48,83 +50,79 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * One look, chosen on purpose: a desk at night. Monochrome base, one accent.
+ * The accent is amber #FFB224 — 10:1 on the surface, ΔE 22+ from every gray
+ * under CVD simulation. Direction is never encoded by color: signs and
+ * position carry it. Charts are single-series; identity lives in the title.
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #0a0a0c;
+  --foreground: #e6e6ea;
+  --card: #0a0a0c;
+  --card-foreground: #e6e6ea;
+  --popover: #101014;
+  --popover-foreground: #e6e6ea;
+  --primary: #e6e6ea;
+  --primary-foreground: #0a0a0c;
+  --secondary: #16161b;
+  --secondary-foreground: #e6e6ea;
+  --muted: #16161b;
+  --muted-foreground: #9a9aa3;
+  --accent: #16161b;
+  --accent-foreground: #e6e6ea;
+  --destructive: #e6e6ea;
+  --border: #232329;
+  --input: #232329;
+  --ring: #55555e;
+  --chart-1: #e6e6ea;
+  --chart-2: #9a9aa3;
+  --chart-3: #55555e;
+  --chart-4: #38383f;
+  --chart-5: #232329;
+  --radius: 0.25rem;
+  --sidebar: #0a0a0c;
+  --sidebar-foreground: #e6e6ea;
+  --sidebar-primary: #e6e6ea;
+  --sidebar-primary-foreground: #0a0a0c;
+  --sidebar-accent: #16161b;
+  --sidebar-accent-foreground: #e6e6ea;
+  --sidebar-border: #232329;
+  --sidebar-ring: #55555e;
+  --night-accent: #ffb224;
+  --night-faint: #55555e;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "ss01";
+  }
+  ::selection {
+    background: var(--night-accent);
+    color: var(--background);
+  }
+}
+
+@layer utilities {
+  /* Numbers are always right-aligned and tabular. No exceptions. */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .label-caps {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
   }
 }
