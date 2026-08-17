@@ -1,0 +1,14 @@
+packages:
+  - "."
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+
+# pnpm 11 gates packages published <24h ago. These two are pinned in the
+# committed lockfile and were rejected only for being fresh; exclude them
+# by name rather than lowering the gate for everything.
+minimumReleaseAgeExclude:
+  - es-module-lexer
+  - es-toolkit

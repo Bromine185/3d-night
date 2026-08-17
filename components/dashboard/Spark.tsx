@@ -20,8 +20,17 @@ export function Spark({
   accentLast?: boolean;
   className?: string;
 }) {
-  const values = data.map((d) => (typeof d === "number" ? d : d.value));
+  let values = data.map((d) => (typeof d === "number" ? d : d.value));
   if (values.length < 2) return null;
+  // Long series get stride-sampled — a 1,255-point path in a 72px spark is
+  // wasted bytes. The last point (the "last night" dot) always survives.
+  const MAX_POINTS = 180;
+  if (values.length > MAX_POINTS) {
+    const step = Math.ceil(values.length / MAX_POINTS);
+    const thinned = values.filter((_, i) => i % step === 0);
+    if ((values.length - 1) % step !== 0) thinned.push(values[values.length - 1]);
+    values = thinned;
+  }
 
   const pad = 2.5;
   let min = Math.min(...values);

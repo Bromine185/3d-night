@@ -11,6 +11,35 @@ import type { Surface } from "../agents/types";
 export const SPAN = 10; // half-extent of the terrain in world units
 export const HEIGHT_SCALE = 28; // +12% return ≈ 3.4 world units of relief
 
+// Shader constants, lifted here so the legend and the axis ladder can state
+// them without drifting out of sync with the terrain material.
+export const CONTOUR_STEP = 0.015; // iso-line every 1.5% of return
+export const PROFIT_RAMP = 0.12; // return at which the amber tint saturates
+
+// The return ladder. Tick semantics are fixed — a tick is always the same
+// world distance — only the post's drawn extent adapts to the surface, so
+// height never changes meaning as the scrubber moves. The envelope covers
+// every reachable surface (measured: −26% storm-stressed → +30% mid-window).
+export const RETURN_TICK_STEP = 0.05;
+export const RETURN_LABEL_STEP = 0.1;
+export const RETURN_AXIS_MIN = -0.3;
+export const RETURN_AXIS_MAX = 0.35;
+
+/** World-unit gap between the mesh edge and axis furniture. */
+export const AXIS_OFFSET = 0.9;
+
+/** Labeled positions: round percentages, not grid indices. */
+export const THRESHOLD_TICKS = [0.01, 0.03, 0.05, 0.07, 0.09, 0.11, 0.13, 0.15];
+export const HOLDING_TICKS = [1, 5, 9, 13, 17, 21];
+
+// The persona layer's own frame — must match personaToWorld below.
+export const PERSONA_FLOOR_Y = 4.5;
+export const PERSONA_CEIL_Y = 7.0;
+
+export function returnToWorldY(r: number): number {
+  return r * HEIGHT_SCALE;
+}
+
 export const T_MIN = SURFACE_AXES.thresholds[0];
 export const T_MAX = SURFACE_AXES.thresholds[SURFACE_AXES.thresholds.length - 1];
 export const H_MIN = SURFACE_AXES.holdings[0];

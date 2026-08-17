@@ -9,6 +9,7 @@
  */
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
+import { useAccordion } from "@/components/dashboard/Accordion";
 import { fmtClock, fmtDateYear } from "@/lib/format";
 import {
   NOW_MS,
@@ -68,6 +69,7 @@ export function TimelineStrip() {
   const [zoom, setZoom] = useState<ZoomId>("8h");
   const [hover, setHover] = useState<TimelineDot | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const acc = useAccordion();
 
   const dots = useMemo(() => buildTimeline(), []);
   const spans = useMemo(() => regimeSpans(), []);
@@ -100,8 +102,12 @@ export function TimelineStrip() {
   const laneOf = (d: TimelineDot, i: number) =>
     d.kind === "market" ? (i * 7) % 3 : d.kind === "personas" ? (i * 5) % 3 : 1;
 
-  const scrollTo = (section: string) => {
-    document.getElementById(section)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Expand the target section first (instantly, so layout is stable), then
+  // let the smooth scroll be the only motion. Falls back to a plain scroll
+  // if the strip is ever mounted outside the accordion.
+  const scrollTo = (section: TimelineDot["section"]) => {
+    if (acc) acc.jumpTo(section);
+    else document.getElementById(section)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (

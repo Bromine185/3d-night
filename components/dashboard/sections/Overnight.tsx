@@ -1,4 +1,5 @@
 import { Spark } from "@/components/dashboard/Spark";
+import { SummaryLine } from "@/components/dashboard/SummaryLine";
 import { personasSummary, signalsAt } from "@/lib/agents";
 import type { TrendPoint } from "@/lib/agents/types";
 import { DATES, LATEST_INDEX } from "@/lib/fixtures";
@@ -78,6 +79,7 @@ export function OvernightSection() {
   const s = personasSummary();
   const signals = signalsAt(LATEST_INDEX);
   const edgeRatio = s.fractureEdge.afterFracture / s.fractureEdge.baseline;
+  const trail = consensusTrail();
 
   return (
     <Section
@@ -85,6 +87,14 @@ export function OvernightSection() {
       index="01"
       title="Overnight"
       subtitle="Fifty readers, fifty slices, none seeing another's work. The signal is where they disagree."
+      summary={
+        <SummaryLine trend={trail} showZero>
+          fifty readers · consensus {fmtNum(s.consensus, 2)} · tonight reads{" "}
+          <span className={s.fractured ? "text-[var(--night-accent)]" : "text-foreground"}>
+            {s.fractured ? "fractured" : "coherent"}
+          </span>
+        </SummaryLine>
+      }
     >
       <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-4">
         <Stat

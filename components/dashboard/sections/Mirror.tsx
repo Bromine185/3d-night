@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Spark } from "@/components/dashboard/Spark";
+import { SummaryLine } from "@/components/dashboard/SummaryLine";
 import { runCritic } from "@/lib/agents";
 import type { JournalEntry } from "@/lib/agents/types";
 import { fmtDate, fmtPct, fmtPctAbs } from "@/lib/format";
@@ -79,6 +80,12 @@ export function MirrorSection() {
       index="04"
       title="Mirror"
       subtitle="The critic reads seven months of your journal back to you, and names the thing."
+      summary={
+        <SummaryLine trend={cr.trend_context}>
+          “<span className="text-foreground">{cr.pattern}</span>” · {cr.evidence.length} decisions
+          cited
+        </SummaryLine>
+      }
     >
       <div className="flex flex-wrap items-baseline gap-x-6 gap-y-3">
         <h3 className="text-2xl font-medium tracking-tight text-foreground md:text-3xl">

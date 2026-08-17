@@ -1,3 +1,4 @@
+import { SummaryLine } from "@/components/dashboard/SummaryLine";
 import { STRATEGY, runBreaker } from "@/lib/agents";
 import { fmtDateYear, fmtPct } from "@/lib/format";
 import { Section } from "../Section";
@@ -6,6 +7,7 @@ import { KillerChart } from "./KillerChart";
 export function StressSection() {
   const br = runBreaker(STRATEGY);
   const worstRegimeStress = br.stresses.find((s) => s.id === "worst_regimes");
+  const held = br.stresses.filter((s) => !s.broke).length;
 
   return (
     <Section
@@ -13,6 +15,13 @@ export function StressSection() {
       index="03"
       title="Stress"
       subtitle="The breaker's only job is to kill the strategy. Five attempts, one success."
+      summary={
+        <SummaryLine trend={br.trend_context}>
+          <span className="text-[var(--night-accent)]">{br.killer.label.toLowerCase()}</span> broke
+          it · cagr {fmtPct(br.killer.base.cagr)} → {fmtPct(br.killer.stressed.cagr)} · {held} of{" "}
+          {br.stresses.length} held
+        </SummaryLine>
+      }
     >
       <p className="max-w-[58ch] text-xl leading-relaxed text-foreground">{br.verdict}</p>
 

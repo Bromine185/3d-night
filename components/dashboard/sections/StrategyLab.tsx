@@ -1,4 +1,5 @@
 import { Spark } from "@/components/dashboard/Spark";
+import { SummaryLine } from "@/components/dashboard/SummaryLine";
 import { STRATEGY, runBacktest, runCoder } from "@/lib/agents";
 import type { RegimeStat } from "@/lib/agents/types";
 import { fmtDate, fmtNum, fmtPct, fmtPctAbs } from "@/lib/format";
@@ -95,6 +96,12 @@ export function StrategyLabSection() {
       index="02"
       title="Strategy Lab"
       subtitle="One sentence in. Three drafts and five replayed years later, a strategy object that survived its own debug loop."
+      summary={
+        <SummaryLine trend={bt.equity}>
+          <span className="text-foreground">{fmtPct(s.totalReturn)}</span> over five years ·{" "}
+          {fmtPct(s.maxDrawdown)} max dd · sharpe {fmtNum(s.sharpe, 2)} · {s.trades} trades
+        </SummaryLine>
+      }
     >
       <div className="grid gap-x-14 gap-y-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         {/* coder */}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AccordionProvider } from "@/components/dashboard/Accordion";
 import { TimelineStrip } from "@/components/dashboard/TimelineStrip";
 import { OvernightSection } from "@/components/dashboard/sections/Overnight";
 import { StrategyLabSection } from "@/components/dashboard/sections/StrategyLab";
@@ -26,14 +27,16 @@ export default function Home() {
         </Link>
       </header>
 
-      <TimelineStrip />
+      <AccordionProvider>
+        <TimelineStrip />
 
-      <div className="mx-auto max-w-6xl px-6 pb-32">
-        <OvernightSection />
-        <StrategyLabSection />
-        <StressSection />
-        <MirrorSection />
-      </div>
+        <div className="mx-auto max-w-6xl px-6 pb-32">
+          <OvernightSection />
+          <StrategyLabSection />
+          <StressSection />
+          <MirrorSection />
+        </div>
+      </AccordionProvider>
 
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6 font-mono text-[11px] text-[var(--night-faint)]">
