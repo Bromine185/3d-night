@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import type { Surface } from "@/lib/agents/types";
 import { LATEST_INDEX } from "@/lib/fixtures";
 import { baseSurface, isCached, stormSurfaceAt } from "@/lib/explore/surfaces";
+import { CriticGhost } from "./scene/CriticGhost";
 import { PersonaNodes } from "./scene/PersonaNodes";
 import { Storm } from "./scene/Storm";
 import { Terrain } from "./scene/Terrain";
@@ -65,6 +66,7 @@ export default function ExploreApp() {
         )}
         <PersonaNodes showTrails />
         <Storm active={stormActive} />
+        <CriticGhost surface={activeSurface} />
 
         <OrbitControls
           enableDamping
