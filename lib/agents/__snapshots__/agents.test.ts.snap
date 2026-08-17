@@ -1,0 +1,233 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`backtester > pins the first and last trades 1`] = `
+{
+  "direction": -1,
+  "entryDate": "2021-10-22",
+  "entryPx": 169.63,
+  "exitDate": "2021-10-29",
+  "exitPx": 165.79,
+  "exitReason": "time",
+  "gapAtEntry": 0.08172,
+  "holdingDays": 5,
+  "regime": "correction",
+  "ret": 0.017638,
+  "symbol": "CRSP",
+}
+`;
+
+exports[`backtester > pins the first and last trades 2`] = `
+{
+  "direction": 1,
+  "entryDate": "2026-08-12",
+  "entryPx": 13.12,
+  "exitDate": "2026-08-14",
+  "exitPx": 13.32,
+  "exitReason": "end",
+  "gapAtEntry": -0.08848,
+  "holdingDays": 2,
+  "regime": "late_cycle",
+  "ret": 0.010244,
+  "symbol": "ARWR",
+}
+`;
+
+exports[`backtester > pins the summary and regime split 1`] = `
+{
+  "avgHoldingDays": 4.8462,
+  "cagr": 0.02816,
+  "exposure": 0.0996,
+  "maxDrawdown": -0.046223,
+  "sharpe": 0.8315,
+  "totalReturn": 0.148322,
+  "trades": 26,
+  "winRate": 0.6923,
+}
+`;
+
+exports[`backtester > pins the summary and regime split 2`] = `
+[
+  {
+    "avgReturn": 0.012741,
+    "regime": "chop",
+    "totalReturn": 0.025007,
+    "trades": 2,
+    "winRate": 0.5,
+  },
+  {
+    "avgReturn": 0.082514,
+    "regime": "correction",
+    "totalReturn": 0.477151,
+    "trades": 5,
+    "winRate": 1,
+  },
+  {
+    "avgReturn": 0.060837,
+    "regime": "crisis",
+    "totalReturn": 0.192172,
+    "trades": 3,
+    "winRate": 1,
+  },
+  {
+    "avgReturn": 0.035667,
+    "regime": "expansion",
+    "totalReturn": 0.178925,
+    "trades": 5,
+    "winRate": 0.4,
+  },
+  {
+    "avgReturn": -0.005997,
+    "regime": "late_cycle",
+    "totalReturn": -0.091483,
+    "trades": 11,
+    "winRate": 0.6364,
+  },
+]
+`;
+
+exports[`breaker > pins the stress battery and the verdict 1`] = `
+[
+  {
+    "broke": false,
+    "cagr": 0.022799,
+    "dd": -0.054077,
+    "id": "costs_x2",
+    "severity": 0.1842,
+  },
+  {
+    "broke": true,
+    "cagr": -0.003664,
+    "dd": -0.101833,
+    "id": "slippage_shock",
+    "severity": 1,
+  },
+  {
+    "broke": false,
+    "cagr": 0.027048,
+    "dd": -0.051348,
+    "id": "stop_gap",
+    "severity": 0.0609,
+  },
+  {
+    "broke": false,
+    "cagr": 0.051749,
+    "dd": -0.046223,
+    "id": "worst_regimes",
+    "severity": 0,
+  },
+  {
+    "broke": false,
+    "cagr": 0.015333,
+    "dd": -0.067289,
+    "id": "half_book",
+    "severity": 0.4556,
+  },
+]
+`;
+
+exports[`breaker > pins the stress battery and the verdict 2`] = `"slippage_shock"`;
+
+exports[`breaker > pins the stress battery and the verdict 3`] = `"Slippage shock kills it: CAGR 2.8% → -0.4%, max drawdown -4.6% → -10.2%. 4 of 5 stresses survived — the edge is real but it is thin, and it lives inside the fill quality."`;
+
+exports[`coder > compiles the sentence into three drafts with real previews 1`] = `
+[
+  {
+    "cagr": 0.100562,
+    "maxDrawdown": -0.419127,
+    "sharpe": 0.511,
+    "trades": 54,
+    "v": 1,
+  },
+  {
+    "cagr": -0.018077,
+    "maxDrawdown": -0.334083,
+    "sharpe": -0.0766,
+    "trades": 64,
+    "v": 2,
+  },
+  {
+    "cagr": 0.02816,
+    "maxDrawdown": -0.046223,
+    "sharpe": 0.8315,
+    "trades": 26,
+    "v": 3,
+  },
+]
+`;
+
+exports[`critic > pins the diagnosis and its evidence 1`] = `"Size follows mood, not signal"`;
+
+exports[`critic > pins the diagnosis and its evidence 2`] = `
+[
+  "2026-02-03",
+  "2026-06-22",
+  "2026-08-10",
+]
+`;
+
+exports[`personas > pins the disagreement structure 1`] = `
+{
+  "clusters": [
+    {
+      "center": 0.4996,
+      "label": "23 constructive",
+      "size": 23,
+    },
+    {
+      "center": 0.1102,
+      "label": "16 on the fence",
+      "size": 16,
+    },
+    {
+      "center": -0.3493,
+      "label": "11 defensive",
+      "size": 11,
+    },
+  ],
+  "consensus": 0.1882,
+  "dispersion": 0.3567,
+  "fractureEdge": {
+    "afterFracture": 0.0298,
+    "baseline": 0.0221,
+  },
+  "fractured": false,
+}
+`;
+
+exports[`personas > pins tonight's first and last views 1`] = `
+{
+  "asset": "SRPT",
+  "conviction": 0.0123,
+  "direction": 0,
+  "name": "Footnote Diver",
+  "rationale": "SRPT -1.6% over 21d; accrual quality slipping into the print — neutral.",
+  "signal": -0.0123,
+  "timestamp": "2026-08-17T01:04:00-04:00",
+  "trailLen": 60,
+}
+`;
+
+exports[`personas > pins tonight's first and last views 2`] = `
+{
+  "asset": "COST",
+  "conviction": 0.4887,
+  "direction": 1,
+  "name": "Job Postings",
+  "rationale": "Panel data ahead of street on COST; COST +2.6% over 10d.",
+  "signal": 0.4887,
+  "timestamp": "2026-08-17T04:55:46-04:00",
+  "trailLen": 60,
+}
+`;
+
+exports[`surface > pins the terrain's shape and corners 1`] = `
+{
+  "center": -0.053135,
+  "corners": [
+    -0.081215,
+    -0.041903,
+    -0.034526,
+    0.006633,
+  ],
+}
+`;
