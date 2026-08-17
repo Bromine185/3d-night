@@ -7,7 +7,7 @@
  *    values, along the two parameter axes; faint gridlines cross the
  *    waterline at the labeled positions (where the terrain is under water
  *    the grid shows through — it draws itself over the loss basins);
- *  · the return post — a vertical ladder at the near corner giving height
+ *  · the return post — a vertical ladder at the far corner giving height
  *    its missing scale. Tick spacing is fixed (5%, labeled every 10%) so
  *    height never changes meaning as the scrubber moves; only the post's
  *    drawn extent adapts to the current surface. A hairline welds its 0%
@@ -63,7 +63,13 @@ export function Segs({ pts, color, opacity }: { pts: number[]; color: string; op
   useEffect(() => () => geometry.dispose(), [geometry]);
   return (
     <lineSegments geometry={geometry}>
-      <lineBasicMaterial color={color} transparent opacity={opacity} depthWrite={false} />
+      <lineBasicMaterial
+        color={color}
+        transparent
+        opacity={opacity}
+        depthWrite={false}
+        fog={false}
+      />
     </lineSegments>
   );
 }
@@ -137,8 +143,13 @@ function GroundRulers({ sx, sz }: { sx: 1 | -1; sz: 1 | -1 }) {
 }
 
 function ReturnPost({ sx, sz, surface }: { sx: 1 | -1; sz: 1 | -1; surface: Surface }) {
-  const cx = sx * (SPAN + AXIS_OFFSET);
-  const cz = sz * (SPAN + AXIS_OFFSET);
+  // The ladder lives at the FAR corner: always inside the default framing,
+  // scaled down by distance instead of looming over the near edge. ox/oz
+  // point outboard (away from the terrain) at that corner.
+  const ox = -sx;
+  const oz = -sz;
+  const cx = ox * (SPAN + AXIS_OFFSET);
+  const cz = oz * (SPAN + AXIS_OFFSET);
 
   // Drawn extent hugs the current surface, rounded out to the tick grid,
   // always spanning zero. Tick *spacing* never adapts.
@@ -162,7 +173,7 @@ function ReturnPost({ sx, sz, surface }: { sx: 1 | -1; sz: 1 | -1; surface: Surf
       // the post itself
       cx, lo * HEIGHT_SCALE, cz, cx, hi * HEIGHT_SCALE, cz,
       // break-even: weld the post's zero to the waterline frame corner
-      cx, 0, cz, sx * SPAN, 0, sz * SPAN,
+      cx, 0, cz, -sx * SPAN, 0, -sz * SPAN,
     ];
     const out: Array<{ r: number; major: boolean }> = [];
     const n0 = Math.round(lo / RETURN_TICK_STEP);
@@ -172,11 +183,12 @@ function ReturnPost({ sx, sz, surface }: { sx: 1 | -1; sz: 1 | -1; surface: Surf
       const y = r * HEIGHT_SCALE;
       const major = Math.abs(r % RETURN_LABEL_STEP) < 1e-9;
       const len = major ? 0.3 : 0.16;
-      p.push(cx, y, cz, cx - sx * len, y, cz - sz * len);
+      // tick nubs point inboard, toward the terrain
+      p.push(cx, y, cz, cx - ox * len, y, cz - oz * len);
       if (major) out.push({ r, major });
     }
     return { pts: p, labels: out };
-  }, [cx, cz, sx, sz, lo, hi]);
+  }, [cx, cz, ox, oz, sx, sz, lo, hi]);
 
   return (
     <group>
@@ -187,7 +199,8 @@ function ReturnPost({ sx, sz, surface }: { sx: 1 | -1; sz: 1 | -1; surface: Surf
             key="r0"
             billboard
             variant="accent"
-            position={[cx + sx * 0.35, 0, cz + sz * 0.35]}
+            depthTest={false}
+            position={[cx + ox * 0.55, 0, cz + oz * 0.55]}
           >
             0% · break even
           </SceneText>
@@ -195,13 +208,14 @@ function ReturnPost({ sx, sz, surface }: { sx: 1 | -1; sz: 1 | -1; surface: Surf
           <SceneText
             key={`r${r}`}
             billboard
-            position={[cx + sx * 0.35, r * HEIGHT_SCALE, cz + sz * 0.35]}
+            depthTest={false}
+            position={[cx + ox * 0.55, r * HEIGHT_SCALE, cz + oz * 0.55]}
           >
             {fmtPct(r, 0)}
           </SceneText>
         ),
       )}
-      <SceneText variant="title" billboard position={[cx, hi * HEIGHT_SCALE + 0.6, cz]}>
+      <SceneText variant="title" billboard position={[cx, hi * HEIGHT_SCALE + 0.8, cz]}>
         realized return
       </SceneText>
     </group>

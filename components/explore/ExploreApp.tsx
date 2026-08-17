@@ -35,8 +35,11 @@ export default function ExploreApp() {
   const [stormSurf, setStormSurf] = useState<Surface | null>(null);
   const [computing, setComputing] = useState(false);
   const [introStep, setIntroStep] = useState<number | null>(null);
+  // Bumped to remount the Canvas when a lost WebGL context never restores.
+  const [canvasEpoch, setCanvasEpoch] = useState(0);
   const generation = useRef(0);
   const introChecked = useRef(false);
+  const restoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const qi = quantizeIndex(timeIndex);
 
@@ -72,12 +75,21 @@ export default function ExploreApp() {
     return () => clearTimeout(id);
   }, [stormActive, qi]);
 
+  // Prefetch the storm surface well after first paint — its main-thread
+  // compute must never overlap GL setup and shader compilation.
   useEffect(() => {
     const id = setTimeout(() => {
       stormSurfaceAt(LATEST_INDEX);
-    }, 1600);
+    }, 5000);
     return () => clearTimeout(id);
   }, []);
+
+  useEffect(
+    () => () => {
+      if (restoreTimer.current) clearTimeout(restoreTimer.current);
+    },
+    [],
+  );
 
   // First visit: open the walkthrough once the loader clears. `?intro=1`
   // forces it; the ? button replays it any time.
@@ -98,38 +110,57 @@ export default function ExploreApp() {
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-[#0a0a0c]">
-      <Canvas dpr={[1, 2]} camera={{ fov: 42, position: [14, 11, 16] }}>
-        <color attach="background" args={["#0a0a0c"]} />
-        <fog attach="fog" args={["#0a0a0c", 26, 48]} />
-        <ambientLight intensity={0.35} />
-        <directionalLight position={[6, 14, 4]} intensity={0.8} />
-        {/* dim fill from the far corner so back slopes stay legible */}
-        <directionalLight position={[-8, 6, -6]} intensity={0.18} />
+      {/* The Canvas waits for the first surface: the 441-cell replay must
+          not block the main thread while the GL context is initializing
+          and shaders compile — that overlap is what killed the context on
+          cold first visits. */}
+      {activeSurface && (
+        <Canvas
+          key={canvasEpoch}
+          dpr={[1, 2]}
+          camera={{ fov: 42, position: [16.5, 12.5, 19] }}
+          onCreated={({ gl }) => {
+            // If a lost context never restores, remount the Canvas whole.
+            const el = gl.domElement;
+            el.addEventListener("webglcontextlost", () => {
+              if (restoreTimer.current) clearTimeout(restoreTimer.current);
+              restoreTimer.current = setTimeout(() => setCanvasEpoch((e) => e + 1), 1200);
+            });
+            el.addEventListener("webglcontextrestored", () => {
+              if (restoreTimer.current) clearTimeout(restoreTimer.current);
+            });
+          }}
+        >
+          <color attach="background" args={["#0a0a0c"]} />
+          <fog attach="fog" args={["#0a0a0c", 26, 48]} />
+          <ambientLight intensity={0.35} />
+          <directionalLight position={[6, 14, 4]} intensity={0.8} />
+          {/* dim fill from the far corner so back slopes stay legible */}
+          <directionalLight position={[-8, 6, -6]} intensity={0.18} />
 
-        {activeSurface && (
           <Terrain
             surface={activeSurface}
             stormSurface={stormSurf}
             stormActive={stormActive}
             ghostSurface={stormActive ? activeSurface : null}
           />
-        )}
-        {effSurface && <Axes surface={effSurface} />}
-        <PersonaAxes emphasize={introStep === 2} />
-        <PersonaNodes timeIndex={timeIndex} showTrails />
-        <Storm active={stormActive} />
-        <CriticGhost surface={activeSurface} />
+          {effSurface && <Axes surface={effSurface} />}
+          <PersonaAxes emphasize={introStep === 2} />
+          <PersonaNodes timeIndex={timeIndex} showTrails />
+          <Storm active={stormActive} />
+          <CriticGhost surface={activeSurface} />
 
-        <OrbitControls
-          enableDamping
-          dampingFactor={0.08}
-          enablePan={false}
-          minDistance={8}
-          maxDistance={32}
-          maxPolarAngle={1.35}
-          target={[0, 0.6, 0]}
-        />
-      </Canvas>
+          <OrbitControls
+            enableDamping
+            dampingFactor={0.08}
+            enablePan={false}
+            minDistance={8}
+            maxDistance={32}
+            maxPolarAngle={1.35}
+            target={[0, 0.6, 0]}
+          />
+        </Canvas>
+      )}
 
       {/* chrome */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between p-5">

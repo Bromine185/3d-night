@@ -45,11 +45,12 @@ export function PersonaAxes({ emphasize = false }: { emphasize?: boolean }) {
     <group>
       <Segs pts={pts} color={INK3D.rule} opacity={lineOpacity} />
 
-      {/* view axis ends — same words the dashboard's signal strip uses */}
-      <SceneText billboard position={[-SPAN - 1.3, FRAME_Y, 0]} opacity={textOpacity}>
+      {/* view axis ends — same words the dashboard's signal strip uses.
+          Raised off the frame so they never overprint the family column. */}
+      <SceneText billboard position={[-SPAN - 1.0, FRAME_Y + 1.6, 0]} opacity={textOpacity}>
         ← short
       </SceneText>
-      <SceneText billboard position={[SPAN + 1.3, FRAME_Y, 0]} opacity={textOpacity}>
+      <SceneText billboard position={[SPAN + 1.0, FRAME_Y + 1.6, 0]} opacity={textOpacity}>
         long →
       </SceneText>
 
@@ -66,10 +67,12 @@ export function PersonaAxes({ emphasize = false }: { emphasize?: boolean }) {
         </SceneText>
       ))}
 
+      {/* off-centre so the return post's title (far corner, projects near
+          screen centre from the default view) can't overprint it */}
       <SceneText
         billboard
         variant="micro"
-        position={[0, FRAME_Y + 3.6, 0]}
+        position={[-4.5, FRAME_Y + 4.2, 0]}
         opacity={textOpacity}
         color={INK3D.muted}
       >

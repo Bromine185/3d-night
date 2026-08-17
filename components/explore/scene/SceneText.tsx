@@ -40,6 +40,8 @@ export interface SceneTextProps {
   anchorX?: "left" | "center" | "right";
   anchorY?: "top" | "middle" | "bottom";
   letterSpacing?: number;
+  /** false = read through geometry, HUD-style (return ladder labels). */
+  depthTest?: boolean;
 }
 
 export const SceneText = memo(function SceneText({
@@ -54,6 +56,7 @@ export const SceneText = memo(function SceneText({
   anchorX = "center",
   anchorY = "middle",
   letterSpacing = 0.02,
+  depthTest = true,
 }: SceneTextProps) {
   const v = VARIANT[variant];
   const label = (
@@ -71,6 +74,7 @@ export const SceneText = memo(function SceneText({
       // Chrome: never fogged, never writes depth over the terrain.
       material-fog={false}
       material-depthWrite={false}
+      material-depthTest={depthTest}
       material-transparent
       renderOrder={10}
     >

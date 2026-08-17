@@ -19,13 +19,22 @@ export default function Home() {
             overnight desk · {fmtDate(LATEST_DATE)} close → {fmtDate(RUN_DATE)} open
           </span>
         </div>
+      </header>
+
+      {/* the way in — centre stage before anything else */}
+      <section className="mx-auto max-w-6xl px-6 pb-12 pt-10 text-center">
+        <p className="label-caps mb-6 text-[var(--night-faint)]">the desk, as landscape</p>
         <Link
           href="/explore"
-          className="font-mono text-[11px] tracking-wider text-muted-foreground transition-colors hover:text-[var(--night-accent)]"
+          className="inline-block border border-[var(--night-accent)] px-12 py-4 font-mono text-sm tracking-[0.3em] text-[var(--night-accent)] transition-colors duration-200 hover:bg-[var(--night-accent)] hover:text-[var(--background)]"
         >
-          EXPLORE →
+          EXPLORE IN 3D →
         </Link>
-      </header>
+        <p className="mx-auto mt-6 max-w-md font-mono text-[11px] leading-relaxed text-muted-foreground">
+          five years · fifty readers · one terrain — fly the strategy&apos;s parameter space,
+          then read the desk below
+        </p>
+      </section>
 
       <AccordionProvider>
         <TimelineStrip />
