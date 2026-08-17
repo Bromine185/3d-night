@@ -33,7 +33,7 @@ export default function ExploreApp() {
         <directionalLight position={[6, 14, 4]} intensity={0.8} />
 
         {activeSurface && <Terrain surface={activeSurface} />}
-        <PersonaNodes />
+        <PersonaNodes showTrails />
 
         <OrbitControls
           enableDamping
