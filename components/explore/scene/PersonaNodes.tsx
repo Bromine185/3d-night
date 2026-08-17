@@ -90,7 +90,7 @@ export function PersonaNodes({ timeIndex = LATEST_INDEX, showTrails = false }: P
   }, [signals, materials]);
 
   useFrame(({ clock }, rawDt) => {
-    const dt = Math.min(rawDt, 0.05);
+    const dt = Math.min(rawDt, 0.2); // stay responsive on slow machines
     if (!lerped.current) lerped.current = targets.slice();
     const cur = lerped.current;
     const k = 1 - Math.exp(-dt * 4);
@@ -182,25 +182,35 @@ export function PersonaNodes({ timeIndex = LATEST_INDEX, showTrails = false }: P
   );
 }
 
-/** Forty sessions of where each reader stood — the trend behind tonight's dot. */
+/**
+ * Where each reader has stood — the trend behind tonight's dot. The trail
+ * plots the reader's *stance*, an exponential smoothing of the daily signal:
+ * day-to-day noise isn't a change of mind, and raw signals drew fifty
+ * scribbles over the terrain instead of fifty drifts.
+ */
 export function Trails({ timeIndex = LATEST_INDEX }: { timeIndex?: number }) {
   const trails = useMemo(() => {
-    const back = 39;
+    const back = 15;
+    const warmup = 10; // settle the smoothing before the visible window
+    const alpha = 0.3;
     return PERSONAS.map((p) => {
       const points: [number, number, number][] = [];
       const colors: THREE.Color[] = [];
       const sNow = personaSignal(p, timeIndex);
       const headColor = MUTED.clone().lerp(ACCENT, Math.abs(sNow) > 0.5 ? 0.55 : 0.12);
-      for (let t = Math.max(0, timeIndex - back); t <= timeIndex; t++) {
-        const s = personaSignal(p, t);
+      const start = Math.max(0, timeIndex - back - warmup);
+      let ema = personaSignal(p, start);
+      for (let t = start; t <= timeIndex; t++) {
+        ema += alpha * (personaSignal(p, t) - ema);
+        if (t < timeIndex - back) continue;
         const [x, y, z] = personaToWorld(
-          s,
+          ema,
           familyIndexOf(p.id),
           withinFamilyOf(p.id),
-          Math.abs(s),
+          Math.abs(ema),
         );
         const age = (timeIndex - t) / back; // 0 = now, 1 = oldest
-        points.push([x, y - age * 1.15, z]);
+        points.push([x, y - age * 0.85, z]);
         colors.push(BG.clone().lerp(headColor, Math.pow(1 - age, 1.6)));
       }
       return { id: p.id, points, colors };
@@ -217,7 +227,7 @@ export function Trails({ timeIndex = LATEST_INDEX }: { timeIndex?: number }) {
             vertexColors={tr.colors}
             lineWidth={1}
             transparent
-            opacity={0.8}
+            opacity={0.5}
           />
         ) : null,
       )}

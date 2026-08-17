@@ -94,7 +94,7 @@ export function EquityCharts() {
             dataKey="value"
             stroke="none"
             fill={INK.gray}
-            fillOpacity={0.1}
+            fillOpacity={0.07}
             isAnimationActive={false}
           />
           <Line

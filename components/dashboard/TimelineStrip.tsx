@@ -30,21 +30,23 @@ const KIND_LABEL: Record<TimelineDot["kind"], string> = {
 
 /** Regime darkness — the ribbon reads as weather, light to heavy. */
 const REGIME_SHADE: Record<string, number> = {
-  expansion: 0.06,
-  recovery: 0.1,
-  late_cycle: 0.16,
-  chop: 0.22,
-  correction: 0.32,
-  crisis: 0.5,
+  expansion: 0.07,
+  recovery: 0.11,
+  late_cycle: 0.18,
+  chop: 0.26,
+  correction: 0.42,
+  crisis: 0.6,
 };
 
 function fmtTick(t: number, zoomMs: number): string {
   const d = new Date(t);
   if (zoomMs <= 9 * 3600_000) {
+    // hourCycle (not hour12:false) so midnight is "00" on every ICU — the
+    // server and the browser must agree or hydration trips.
     return d.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
-      hour12: false,
+      hourCycle: "h23",
       timeZone: "America/New_York",
     });
   }
@@ -128,9 +130,9 @@ export function TimelineStrip() {
           </div>
         </div>
 
-        <div className="relative h-14 select-none">
+        <div className="relative h-[78px] select-none">
           {/* regime ribbon — the longer trend under everything */}
-          <div className="absolute inset-x-0 top-[34px] h-[3px] overflow-hidden">
+          <div className="absolute inset-x-0 top-[40px] h-[3px] overflow-hidden">
             {spans
               .filter((s) => s.endMs >= t0 && s.startMs <= NOW_MS)
               .map((s, i) => {
@@ -151,11 +153,11 @@ export function TimelineStrip() {
           </div>
 
           {/* axis */}
-          <div className="absolute inset-x-0 top-[33px] h-px bg-border" />
+          <div className="absolute inset-x-0 top-[39px] h-px bg-border" />
           {ticks.map((t, i) => (
             <div
               key={i}
-              className="absolute top-[38px] font-mono text-[10px] text-[var(--night-faint)]"
+              className="absolute top-[46px] whitespace-nowrap font-mono text-[10px] text-[var(--night-faint)]"
               style={{
                 left: `${xPct(t)}%`,
                 transform:
@@ -201,7 +203,7 @@ export function TimelineStrip() {
           </AnimatePresence>
 
           {/* now marker */}
-          <div className="absolute right-0 top-[12px] h-[22px] w-px bg-[var(--night-accent)] opacity-70" />
+          <div className="absolute right-0 top-[13px] h-[27px] w-px bg-[var(--night-accent)] opacity-70" />
 
           {/* hover readout — fixed slot, no layout shift */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-4 items-center justify-between font-mono text-[11px]">

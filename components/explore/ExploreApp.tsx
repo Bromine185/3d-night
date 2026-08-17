@@ -78,6 +78,8 @@ export default function ExploreApp() {
         <fog attach="fog" args={["#0a0a0c", 26, 48]} />
         <ambientLight intensity={0.35} />
         <directionalLight position={[6, 14, 4]} intensity={0.8} />
+        {/* dim fill from the far corner so back slopes stay legible */}
+        <directionalLight position={[-8, 6, -6]} intensity={0.18} />
 
         {activeSurface && (
           <Terrain

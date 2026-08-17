@@ -31,12 +31,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${jetbrainsMono.variable} antialiased`}
-      >
-        {children}
-      </body>
+    // Font variables live on <html> so `font-sans` on the root can resolve
+    // them — on <body> alone, the html-level rule falls back to serif.
+    <html lang="en" className={`${geistSans.variable} ${jetbrainsMono.variable}`}>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

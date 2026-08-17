@@ -150,7 +150,10 @@ export function Terrain({ surface, stormSurface, stormActive = false, ghostSurfa
   const markerJ = Math.round(((markerZ + SPAN) / (2 * SPAN)) * (RES - 1));
 
   useFrame((_, rawDt) => {
-    const dt = Math.min(rawDt, 0.05);
+    // Generous clamp: on a slow machine (software GL, old laptop) frames can
+    // take 200ms+, and the storm front must track wall time or the six-second
+    // sweep turns into thirty.
+    const dt = Math.min(rawDt, 0.2);
 
     // The breaker's front: advances while summoned, retreats when cleared.
     const frontTarget = stormActive ? 1 : 0;
@@ -290,9 +293,6 @@ export function Terrain({ surface, stormSurface, stormActive = false, ghostSurfa
       </Html>
       <Html position={[SPAN + 1.9, 0.1, 0]} center distanceFactor={20} zIndexRange={[30, 0]}>
         <div style={axisLabelStyle}>holding period 1 → 21d</div>
-      </Html>
-      <Html position={[-SPAN - 1.4, 1.6, -SPAN - 0.6]} center distanceFactor={20} zIndexRange={[30, 0]}>
-        <div style={axisLabelStyle}>height = realized return · waterline = 0</div>
       </Html>
     </group>
   );
