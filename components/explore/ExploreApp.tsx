@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Surface } from "@/lib/agents/types";
 import { baseSurface } from "@/lib/explore/surfaces";
+import { PersonaNodes } from "./scene/PersonaNodes";
 import { Terrain } from "./scene/Terrain";
 
 export default function ExploreApp() {
@@ -32,6 +33,7 @@ export default function ExploreApp() {
         <directionalLight position={[6, 14, 4]} intensity={0.8} />
 
         {activeSurface && <Terrain surface={activeSurface} />}
+        <PersonaNodes />
 
         <OrbitControls
           enableDamping
@@ -62,7 +64,7 @@ export default function ExploreApp() {
       <div className="pointer-events-none absolute bottom-6 left-5 z-30 font-mono text-[10px] leading-relaxed text-[#55555e]">
         height = realized return · x = entry threshold · z = holding period
         <br />
-        drag to orbit, scroll to zoom
+        nodes = the fifty, placed by view · drag to orbit, scroll to zoom
       </div>
 
       {!activeSurface && (
