@@ -114,6 +114,14 @@ export function AccordionProvider({ children }: { children: React.ReactNode }) {
     const now = performance.now();
     if (now - lastActivate.current < 150) return;
     lastActivate.current = now;
+    // The collapse above may clamp the scroll position; keep the line rule
+    // quiet while those synthetic scroll events land, or it can steal the
+    // activation straight back.
+    navLock.current = true;
+    if (navTimer.current) clearTimeout(navTimer.current);
+    navTimer.current = setTimeout(() => {
+      navLock.current = false;
+    }, 500);
     const goingDown = prev === null || SECTION_ORDER.indexOf(id) > SECTION_ORDER.indexOf(prev);
     // Anchor the eye-line: the incoming header when descending; the first
     // header still below the activation line when ascending.
@@ -144,12 +152,16 @@ export function AccordionProvider({ children }: { children: React.ReactNode }) {
           manualClose.current = null;
         }
         const line = window.innerHeight * ACTIVATION;
-        let candidate: SectionId = SECTION_ORDER[0];
+        // No header above the line means the reader is parked at the very
+        // top of whatever is open — keep it. Defaulting to the first
+        // section here would steal activations whenever a collapse above
+        // the viewport clamps the scroll position to 0.
+        let candidate: SectionId | null = null;
         for (const id of SECTION_ORDER) {
           const el = document.getElementById(id);
           if (el && el.getBoundingClientRect().top <= line) candidate = id;
         }
-        if (candidate !== activeRef.current) activate(candidate);
+        if (candidate !== null && candidate !== activeRef.current) activate(candidate);
       });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -216,6 +228,13 @@ export function AccordionProvider({ children }: { children: React.ReactNode }) {
     }
     const el = document.getElementById(id);
     if (el) anchor.current = { id, top: el.getBoundingClientRect().top };
+    // A big collapse above can clamp the scroll position; hold the line
+    // rule off until those scroll events have landed.
+    navLock.current = true;
+    if (navTimer.current) clearTimeout(navTimer.current);
+    navTimer.current = setTimeout(() => {
+      navLock.current = false;
+    }, 500);
     setState({ active: id, kind: "manual-open" });
     setUrl(id);
   }, []);
